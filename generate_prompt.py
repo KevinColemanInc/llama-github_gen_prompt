@@ -11,15 +11,18 @@ input_prompt = PromptTemplate(
         "PrBody",
         "GitDiff",
     ],
-    template="""RepoName: {RepoName} 
-RepoDescription: {RepoDescription} 
+    template="""Below is an instruction that describes a task, paired with an input that provides further context. Write a code diff that appropriately completes the request.
+### Instruction:
+Generate a code diff that {PrTitle} and {PrBody} for {RepoName} and {RepoDescription}
+
+### Input:
 Filenames: {Filenames} 
-PrTitle: {PrTitle} 
-PrBody: {PrBody} 
-GitDiff: {GitDiff}""",
+
+### Response:
+{GitDiff}""",
 )
 
-
+too_big_kb_count = 0
 def generate_prompt(example_path, max_kb: 10):
     """
     Generates a prompt from examples
@@ -30,6 +33,7 @@ def generate_prompt(example_path, max_kb: 10):
                 fullpath = os.path.join(path, filename)
                 # next if file is bigger than 10kb
                 if os.path.getsize(fullpath) > max_kb * 1024:
+                    too_big_kb_count += 1
                     continue
 
                 # load the json file
@@ -45,3 +49,6 @@ def generate_prompt(example_path, max_kb: 10):
                         GitDiff=data["GitDiff"],
                     )
     return None
+
+def stats():
+  return {too_big_kb_count: too_big_kb_count}
